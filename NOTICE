@@ -1,0 +1,129 @@
+Swift-Bonsai-2 27B — NInfer ternary artifacts (PQ2_0_G128 / PTQ1_0_G128)
+=======================================================================
+
+This work is licensed under the Apache License, Version 2.0. See the LICENSE file.
+
+Every component in the provenance chain is Apache-2.0 licensed **except one link, which is
+disclosed explicitly in section 2 below**. We do not hide it.
+
+
+1. PROVENANCE CHAIN
+-------------------
+
+  Qwen/Qwen3.8-27B                                   Apache-2.0
+      Copyright 2026 Alibaba Cloud
+      The dense 27B base model. Geometry, tokenizer and the six frontend resources derive here.
+
+  prism-ml/Ternary-Bonsai-2-27B-gguf                 Apache-2.0
+      Copyright Prism ML, Inc.
+      The ternary (1.58-bit) + Hadamard-rotated-basis release of Bonsai 2 27B.
+      Defines the `prism.hadamard.*` metadata contract this artifact carries.
+
+  ukisai/Swift-Bonsai-2-GGUF                         Apache-2.0
+      ukisai — "Swift Bonsai 2", a reasoning-efficient fine-tune.
+      >>> THIS IS THE WEIGHT SOURCE OF THE ARTIFACTS IN THIS REPOSITORY. <<<
+
+  github.com/Neroued/ninfer                          Apache-2.0
+      Upstream engine, converter and the version-2 artifact container format.
+
+  github.com/Ambolio/ninfer-4090-windows             Apache-2.0
+      The Ada/Windows source lineage (v1.0.6 / v1.0.8) whose format dialect this artifact uses.
+      (The HF copy that existed under the same name is now 404; the lineage persists through forks.)
+
+  shensanshu/ninfer-ada-ternary                      Apache-2.0
+      The packer `tools/pack.py`, the per-tensor mapping table `tools/MAPPING.json`,
+      and the five verification scripts, all redistributed here under Apache-2.0
+      with the notice below.
+
+  Barding-Defense/Qwen3.8-27B-huihui-abliterated-groupwise-int-NInfer   Apache-2.0
+      Used ONLY as a template: its object list (the skeleton this packer walks) and the
+      payloads it donates for vision / mtp / frontend / draft_head.
+      **Its text weights are discarded entirely and do not enter this artifact.**
+
+  Upstream sibling — ukisai/Swift-Qwen3.8-27b              swift-open-license-1.0
+      This is the BF16 fine-tune checkpoint from which ukisai's Swift derivative family descends.
+      It is **not** the direct source of this repository (we pack from ukisai's GGUF release,
+      which is itself marked Apache-2.0), but it sits in the same family, and its license is
+      **not** Apache. We flag it here rather than omit it so downstream users can make their own
+      judgement. If you need a conservative position, treat this chain as carrying that
+      upstream license.
+
+
+2. SCOPE OF WHAT THIS REPOSITORY DISTRIBUTES
+--------------------------------------------
+
+This repository distributes **weight-derived artifacts** (the two `.ninfer` files), not code
+weights per se. Per the packer project's own NOTICE:
+
+  > 由本项目产出的 `.ninfer` 制品属于权重派生品，其再分发义务以权重原许可为准，与代码许可无关。
+
+The direct source (`ukisai/Swift-Bonsai-2-GGUF`) and the base (`prism-ml/Ternary-Bonsai-2-27B-gguf`,
+`Qwen/Qwen3.8-27B`) are all published as **Apache-2.0**, which permits redistribution.
+The un-Apache link noted in section 1 is upstream of the direct source and is disclosed there.
+
+**No model weights were retrained, fine-tuned, abliterated or otherwise behaviourally modified
+by us.** Model behaviour — including all refusal characteristics inherited from the upstream
+fine-tune — derives entirely from `ukisai/Swift-Bonsai-2-GGUF`.
+
+
+STATEMENT OF CHANGES (Apache-2.0 section 4(b))
+----------------------------------------------
+
+Relative to `ukisai/Swift-Bonsai-2-GGUF` (the weight source):
+
+  * The 402 ternary matrices were **moved byte-for-byte**. The 2-bit codes and their per-128
+    FP16 scales were copied verbatim from the GGUF block stream into the artifact's
+    `row-split-k128-v1` three-plane layout. **No dequantization and no requantization occurred.**
+  * llama.cpp's exporter conventions were undone, as the upstream recipe requires:
+      - GDN value heads: tiled order -> grouped order (per-head, `perm48(head)*128 + inner`)
+      - zero-centred norms: `1 + w` -> `w`   (except `gdn/norm` / `ssm_norm`, whose raw value
+        is already ~1)
+      - `ssm_a` (`-exp(A_log)`) -> `A_log`
+  * `text/hadamard_signs` (28,672 fp32 words) and `text/hadamard_widths` (3 int32) were
+    **added**: they restate the GGUF's `prism.hadamard.sign_values` / `sign_widths` in the
+    artifact's own object vocabulary. The source GGUF already carries these values; the
+    template does not, which is why the object count is 1126 rather than 1124.
+  * Non-ternary tensors (norms, GDN A/B projections, convolution, `A_log`, `dt_bias`,
+    `token_embedding`'s direct companions) were re-encoded from the same GGUF.
+
+Relative to `Barding-Defense/Qwen3.8-27B-huihui-abliterated-groupwise-int-NInfer` (the template):
+
+  * **Nothing of its text tower is used.** Only its object list and the vision (333), mtp (12),
+    frontend (6) and draft_head (2) payloads — 1,116,856,537 bytes — were carried over.
+  * Those payloads are the official Qwen3.8-27B components shared across the whole family.
+    The packer verified the MTP head against the target at cosine >= 0.99966 with seven norms
+    **bit-identical**.
+
+Relative to `shensanshu/ninfer-ada-ternary` `tools/pack.py`:
+
+  * **No functional change.** The only edit was to the default path constants at the top of the
+    file — `NINFER_ROOT` (which pointed at the author's own development machine) and `TEMPLATE`
+    — both replaced with neutral placeholders (`<NINFER_ROOT>`, `<TEMPLATE>`). The same
+    substitution was applied to the five scripts under `tools/verify/` and to `MAPPING.json`'s
+    `_verified_by` note. **No logic was altered.**
+  * `MAPPING.json` is redistributed verbatim.
+  * **No validation, checksum, geometry check or byte-round-trip proof was disabled, relaxed
+    or bypassed.** The `check` mode was run to completion against the source GGUF and reported
+    `pad = 0` for all eight shape combinations, with `bytes_equal` and `decode_equal` true on
+    every sampled tensor.
+
+Relative to `github.com/Neroued/ninfer`:
+
+  * **NO CHANGES.** Upstream was not patched, modified or circumvented by this work.
+
+
+Trademarks
+----------
+
+"Qwen" is a trademark of Alibaba Cloud. "Bonsai" and "Prism ML" are marks of Prism ML, Inc.
+
+This is an unofficial, community-produced derivative. It is **not** endorsed by or affiliated
+with Alibaba Cloud, Prism ML, ukisai, shensanshu, or the NInfer project.
+
+
+Disclaimer
+----------
+
+Provided **AS IS**, without warranty of any kind. All measurements cited in README.md were taken
+in specific hardware/software environments and will differ across GPU model, driver, CUDA version
+and memory bandwidth.
