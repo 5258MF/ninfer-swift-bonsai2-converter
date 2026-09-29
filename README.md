@@ -37,8 +37,7 @@ repository is that toolchain, made public**.
 │                                 (container / layouts / numeric / inspect)
 ├── engine/README.md              Where to get a working engine (Ambolio lineage forks,
 │                                 per-GPU build notes, dialect check)
-├── model-card-en.md              The HF model card (English, as published)
-├── model-card-zh.md              The HF model card (中文, as published)
+Model card → https://huggingface.co/fyb1214/Swift-Bonsai-2-27B-NInfer
 ├── REPRODUCE.md                  Step-by-step reproduction guide
 ├── NOTICE                        Full provenance chain + Apache-2.0 §4(b) statement of changes
 ├── LICENSE                       Apache-2.0

@@ -27,7 +27,7 @@
 ├── converter/                    打包器 + 逐张量映射表 + 5 个验证脚本
 ├── ninfer_root/tools/artifact/   pack.py import 的 NInfer v2 容器模块
 ├── engine/README.md              从哪拿引擎（Ambolio 血统 fork、按显卡构建、方言校验）
-├── model-card-en.md / model-card-zh.md   HF 模型卡（英 / 中，与线上一致）
+模型卡 → https://huggingface.co/fyb1214/Swift-Bonsai-2-27B-NInfer
 ├── REPRODUCE.md                  逐步复现指南
 ├── NOTICE                        完整出处链 + Apache-2.0 §4(b) 改动声明
 ├── LICENSE                       Apache-2.0
